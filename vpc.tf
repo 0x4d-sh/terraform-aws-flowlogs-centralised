@@ -10,13 +10,13 @@ locals {
 
 resource "aws_flow_log" "centralized" {
   for_each             = toset(var.vpc_ids)
-  log_destination      = "arn:aws:s3:::sec-dev-chronicle-all-vpcflowlogs" # Optionally, a prefix can be added after the ARN.
+  log_destination      = "arn:aws:s3:::sec-chronicle-all-vpcflowlogs" # Optionally, a prefix can be added after the ARN.
   log_destination_type = "s3"
   traffic_type         = "ALL"
   vpc_id               = each.value
   log_format           = local.custom_log_format_v5 # If you want fields from VPC Flow Logs v3+, you will need to create a custom log format.
   destination_options {
-    file_format        = "plain-text"
+    file_format        = "parquet"
     per_hour_partition = true
   }
   tags                 = {
