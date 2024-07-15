@@ -10,7 +10,7 @@ locals {
 
 resource "aws_flow_log" "centralized" {
   for_each             = toset(var.vpc_ids)
-  log_destination      = "arn:aws:s3:::sec-chronicle-all-vpcflowlogs" # Optionally, a prefix can be added after the ARN.
+  log_destination      = "arn:aws:s3:::sec-dev-chronicle-all-vpcflowlogs" # Optionally, a prefix can be added after the ARN.
   log_destination_type = "s3"
   traffic_type         = "ALL"
   vpc_id               = each.value
