@@ -1,0 +1,629 @@
+# Product: AWS VPC Flow
+# Category: AWS Specific
+# Supported Format: RAW
+# Reference: N/A
+# Last Updated: 2024-07-15
+# Copyright 2024 Chronicle LLC
+
+filter {
+    mutate {
+        replace => {
+        "version" => ""
+        "account_id" => ""
+        "interface_id" => ""
+        "srcaddr" => ""
+        "dstaddr" => ""
+        "srcport" => ""
+        "dstport" => ""
+        "protocol" => ""
+        "packets" => ""
+        "bytes" => ""
+        "start" => ""
+        "end" => ""
+        "action" => ""
+        "log_status" => ""
+        "vpc_id" => ""
+        "subnet_id" => ""
+        "instance_id" => ""
+        "tcp_flags" => ""
+        "type" => ""
+        "pkt_srcaddr" => ""
+        "pkt_dstaddr" => ""
+        "region" => ""
+        "az_id" => ""
+        "sublocation_type" => ""
+        "sublocation_id" => ""
+        "pkt_src_aws_service" => ""
+        "pkt_dst_aws_service" => ""
+        "flow_direction" => ""
+        "traffic_path" => ""
+        "ecs_cluster_arn" => ""
+        "ecs_cluster_name" => ""
+        "ecs_container_instance_arn" => ""
+        "ecs_container_instance_id" => ""
+        "ecs_container_id" => ""
+        "ecs_second_container_id" => ""
+        "ecs_service_name" => ""
+        "ecs_task_definition_arn" => ""
+        "ecs_task_arn" => ""
+        "ecs_task_id" => ""
+        "intermediary" => ""
+        "security_result" => ""
+        "security_result_action" => ""
+        }
+    }
+
+    # Pull fields
+    if [message] =~ "vpc-[a-z0-9]+ subnet-[a-z0-9]+ " {
+        grok {
+            match => {
+            "message" => "%{NUMBER:version}[ ,]%{NUMBER:account_id}[ ,]%{DATA:interface_id}[ ,]%{DATA:srcaddr}[ ,]%{DATA:dstaddr}[ ,]%{DATA:srcport}[ ,](%{DATA:dstport}[ ,]|)%{DATA:protocol}[ ,]%{DATA:packets}[ ,]%{DATA:bytes}[ ,]%{DATA:start}[ ,]%{DATA:end}[ ,]%{DATA:action}[ ,]%{DATA:log_status}[ ,]%{DATA:vpc_id}[ ,]%{DATA:subnet_id}[ ,]%{DATA:instance_id}[ ,]%{DATA:tcp_flags}[ ,]%{DATA:type}[ ,]%{DATA:pkt_srcaddr}[ ,]%{DATA:pkt_dstaddr}[ ,]%{DATA:region}[ ,]%{DATA:az_id}[ ,]%{DATA:sublocation_type}[ ,]%{DATA:sublocation_id}[ ,]%{DATA:pkt_src_aws_service}[ ,]%{DATA:pkt_dst_aws_service}[ ,]%{DATA:flow_direction}[ ,]%{DATA:traffic_path}[ ,]%{DATA:ecs_cluster_arn}[ ,]%{DATA:ecs_cluster_name}[ ,]%{DATA:ecs_container_instance_arn}[ ,]%{DATA:ecs_container_instance_id}[ ,]%{DATA:ecs_container_id}[ ,]%{DATA:ecs_second_container_id}[ ,]%{DATA:ecs_service_name}[ ,]%{DATA:ecs_task_definition_arn}[ ,]%{DATA:ecs_task_arn}[ ,]%{DATA:ecs_task_id}"
+            }
+            overwrite => ["version", "account_id", "interface_id", "srcaddr", "dstaddr", "srcport", "dstport", "protocol", "packets", "bytes", "start", "end", "action", "log_status", "vpc_id", "subnet_id", "instance_id", "tcp_flags", "type", "pkt_srcaddr", "pkt_dstaddr", "region", "az_id", "sublocation_type", "sublocation_id", "pkt_src_aws_service", "pkt_dst_aws_service", "flow_direction", "traffic_path", "ecs_cluster_arn", "ecs_cluster_name", "ecs_container_instance_arn", "ecs_container_instance_id", "ecs_container_id", "ecs_second_container_id", "ecs_service_name", "ecs_task_definition_arn", "ecs_task_arn", "ecs_task_id"
+            ]
+            on_error => "pattern_not_matched"
+        }
+    }
+    else {
+        grok {
+        match => {
+            "message" => "%{NUMBER:version}[ ,]%{NUMBER:account_id}[ ,]%{DATA:interface_id}[ ,]%{DATA:srcaddr}[ ,]%{DATA:dstaddr}[ ,]%{DATA:srcport}[ ,](%{DATA:dstport}[ ,]|)%{DATA:protocol}[ ,]%{DATA:packets}[ ,]%{DATA:bytes}[ ,]%{DATA:start}[ ,]%{DATA:end}[ ,]%{DATA:action}[ ,]%{DATA:log_status}[ ,]%{DATA:vpc_id}[ ,]%{DATA:subnet_id}[ ,]%{DATA:instance_id}[ ,]%{DATA:tcp_flags}[ ,]%{DATA:type}[ ,]%{DATA:pkt_srcaddr}[ ,]%{DATA:pkt_dstaddr}[ ,]%{DATA:region}[ ,]%{DATA:az_id}[ ,]%{DATA:sublocation_type}[ ,]%{DATA:sublocation_id}[ ,]%{DATA:pkt_src_aws_service}[ ,]%{DATA:pkt_dst_aws_service}[ ,]%{DATA:flow_direction}[ ,]%{DATA:traffic_path}[ ,]%{DATA:ecs_cluster_arn}[ ,]%{DATA:ecs_cluster_name}[ ,]%{DATA:ecs_container_instance_arn}[ ,]%{DATA:ecs_container_instance_id}[ ,]%{DATA:ecs_container_id}[ ,]%{DATA:ecs_second_container_id}[ ,]%{DATA:ecs_service_name}[ ,]%{DATA:ecs_task_definition_arn}[ ,]%{DATA:ecs_task_arn}[ ,]%{DATA:ecs_task_id}"
+        }
+        overwrite => ["version", "account_id", "interface_id", "srcaddr", "dstaddr", "srcport", "dstport", "protocol", "packets", "bytes", "start", "end", "action", "log_status", "vpc_id", "subnet_id", "instance_id", "tcp_flags", "type", "pkt_srcaddr", "pkt_dstaddr", "region", "az_id", "sublocation_type", "sublocation_id", "pkt_src_aws_service", "pkt_dst_aws_service", "flow_direction", "traffic_path", "ecs_cluster_arn", "ecs_cluster_name", "ecs_container_instance_arn", "ecs_container_instance_id", "ecs_container_id", "ecs_second_container_id", "ecs_service_name", "ecs_task_definition_arn", "ecs_task_arn", "ecs_task_id"
+            ]
+            on_error => "pattern_not_matched"
+        }
+    }
+
+    if [pattern_not_matched] {
+        drop {
+        tag => "TAG_MALFORMED_ENCODING"
+        }
+    }
+
+    date {
+        match => ["start", "UNIX" ]
+    }
+
+    if [end] != "" {
+        date {
+        match => ["end", "UNIX"]
+        target => "event.idm.read_only_udm.metadata.ingested_timestamp"
+        }
+    }
+  
+    if [version] not in ["", "-"] {
+        mutate {
+        replace => {
+            "event.idm.read_only_udm.metadata.product_version" => "%{version}"
+        }
+        }
+    }
+
+    if [srcaddr] not in ["", "-"] {
+        mutate {
+            merge => {
+                "event.idm.read_only_udm.principal.ip" => "srcaddr"
+            }
+        }
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.principal.port" => "%{srcport}"
+            }
+        }
+
+        mutate {
+            convert => {
+                "event.idm.read_only_udm.principal.port" => "integer"
+            }
+        }
+    }
+
+    if [dstaddr] not in ["", "-"] {
+        mutate {
+            merge => {
+                "event.idm.read_only_udm.target.ip" => "dstaddr"
+            }
+        }
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.metadata.event_type" => "NETWORK_CONNECTION"
+            }
+        }
+    }
+    else {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.metadata.event_type" => "GENERIC_EVENT"
+            }
+        }
+    }
+
+    if [dstport] not in ["", "-"] {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.target.port" => "%{dstport}"
+            }
+        }
+
+        mutate {
+            convert => {
+                "event.idm.read_only_udm.target.port" => "integer"
+            }
+            on_error => "already_integer"
+        }
+    }
+
+    if [protocol] == "6" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.network.ip_protocol" => "TCP"
+            }
+        }
+    }
+    else if [protocol] == "17" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.network.ip_protocol" => "UDP"
+            }
+        }
+    }
+    else if [protocol] not in ["", "-"] {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.network.ip_protocol" => "UNKNOWN_IP_PROTOCOL"
+            }
+        }
+    }
+
+    if [action] not in ["", "-"] {
+        if [action] == "ACCEPT" {
+            mutate {
+                replace => {
+                "security_result_action" => "ALLOW"
+                }
+            }
+        }
+        else if [action] == "REJECT" {
+            mutate {
+                replace => {
+                "security_result_action" => "BLOCK"
+                }
+            }
+        }
+    }
+
+    if [security_result_action] != "" {
+        mutate {
+            replace => {
+                "security_result.action_details" => "%{action}"
+            }
+            merge => {
+                "security_result.action" => "security_result_action"
+            }
+        }
+    }
+
+    if [security_result] != "" {
+        mutate {
+            merge => {
+                "event.idm.read_only_udm.security_result" => "security_result"
+            }
+        }
+    }
+
+    if [bytes] not in ["", "-"] {
+        mutate {
+            convert => {
+                "bytes" => "uinteger"
+            }
+        }
+        mutate {
+            rename => {
+                "bytes" => "event.idm.read_only_udm.network.received_bytes"
+            }
+        }
+    }
+
+    if [account_id] not in ["", "unknown"] {
+         mutate {
+            replace => {
+                "event.idm.read_only_udm.metadata.product_log_id" => "%{account_id}"
+            }
+        }
+    }
+
+    if [region] != "" {
+        mutate {
+        rename => {"region" => "event.idm.read_only_udm.principal.location.country_or_region"}
+        }
+    }
+
+    if [vpc_id] != "" {
+        mutate {
+            rename => {"vpc_id" => "event.idm.read_only_udm.principal.cloud.vpc.id"}
+        }
+    }
+
+    if [instance_id] != "" {
+        mutate {
+            rename => {"InstanceID" => "event.idm.read_only_udm.principal.cloud.project.id"}
+        }
+    }
+
+    if [az_id] != "" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.principal.cloud.availability_zone" => "%{az_id}"
+            }
+        }
+    }
+
+    if [flow_direction] == "ingress" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.network.direction" => "INBOUND"
+            }
+        }
+    }
+    else if [flow_direction] == "egress" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.network.direction" => "OUTBOUND"
+            }
+        }
+    }
+
+    if [pkt_dstaddr] not in ["", "-"] {
+        mutate {
+            merge => {
+                "intermediary.ip" => "pkt_dstaddr"
+            }
+        }
+    }
+
+    if [pkt_srcaddr] not in ["", "-"] {
+        mutate {
+            merge => {
+                "intermediary.ip" => "pkt_srcaddr"
+            }
+        }
+    }
+
+    if [intermediary] != "" {
+        mutate {
+            merge => {
+                "event.idm.read_only_udm.intermediary" => "intermediary"
+            }
+        }
+    }
+
+    if [interface_id] != "" {
+        mutate {
+            replace => {
+                "interfaceId_field.key" => "interface_id"
+                "interfaceId_field.value" => "%{interface_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "interfaceId_field"
+            }
+        }
+    }
+
+    if [packets] not in ["", "-"] {
+        mutate {
+            replace => {
+                "packets_field.key" => "packets"
+                "packets_field.value" => "%{packets}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "packets_field"
+            }
+        }
+    }
+
+    if [subnet_id] != "" {
+        mutate {
+            replace => {
+                "subnet_id_field.key" => "subnet_id"
+                "subnet_id_field.value" => "%{subnet_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "subnet_id_field"
+            }
+        }
+    }
+
+    if [log_status] != "" {
+        mutate {
+            replace => {
+                "log_status_field.key" => "log_status"
+                "log_status_field.value" => "%{log_status}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "log_status_field"
+            }
+        }
+    }
+
+    if [tcp_flags] not in ["", "-"] {
+        mutate {
+            replace => {
+                "tcp_flags_field.key" => "tcp_flags"
+                "tcp_flags_field.value" => "%{tcp_flags}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "tcp_flags_field"
+            }
+        }
+    }
+
+    if [type] not in ["", "-"] {
+        mutate {
+            replace => {
+                "type_field.key" => "type"
+                "type_field.value" => "%{type}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "type_field"
+            }
+        }
+    }
+
+    if [traffic_path] not in ["", "-"] {
+        mutate {
+            replace => {
+                "traffic_path_field.key" => "traffic_path"
+                "traffic_path_field.value" => "%{traffic_path}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "traffic_path_field"
+            }
+        }
+    }
+
+    if [start] != "" {
+        mutate {
+            replace => {
+                "start_time_field.key" => "start"
+                "start_time_field.value" => "%{start}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "start_time_field"
+            }
+        }
+    }
+
+    if [end] != "" {
+        mutate {
+            replace => {
+                "end_time_field.key" => "end"
+                "end_time_field.value" => "%{end}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "end_time_field"
+            }
+        }
+    }
+
+    if [sublocation_id] not in ["", "-"] {
+        mutate {
+            replace => {
+                "sublocation_id_field.key" => "sublocation_id"
+                "sublocation_id_field.value" => "%{sublocation_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "sublocation_id_field"
+            }
+        }
+    }
+
+    if [sublocation_type] not in ["", "-"] {
+        mutate {
+            replace => {
+                "sublocation_type_field.key" => "sublocation_type"
+                "sublocation_type_field.value" => "%{sublocation_type}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "sublocation_type_field"
+            }
+        }
+    }
+
+    if [pkt_dst_aws_service] not in ["", "-"] {
+        mutate {
+            replace => {
+                "pkt_dst_aws_service_field.key" => "pkt_dst_aws_service"
+                "pkt_dst_aws_service_field.value" => "%{pkt_dst_aws_service}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "pkt_dst_aws_service_field"
+            }
+        }
+    }
+
+    if [pkt_src_aws_service] not in ["", "-"] {
+        mutate {
+            replace => {
+                "pkt_src_aws_service_field.key" => "pkt_src_aws_service"
+                "pkt_src_aws_service_field.value" => "%{pkt_src_aws_service}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "pkt_src_aws_service_field"
+            }
+        }
+    }
+
+    if [ecs_cluster_arn] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_cluster_arn_field.key" => "ecs_cluster_arn"
+                "ecs_cluster_arn_field.value" => "%{ecs_cluster_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_cluster_arn_field"
+            }
+        }
+    }
+
+    if [ecs_cluster_name] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_cluster_name_field.key" => "ecs_cluster_name"
+                "ecs_cluster_name_field.value" => "%{ecs_cluster_name}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_cluster_name_field"
+            }
+        }
+    }
+
+    if [ecs_container_instance_arn] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_container_instance_arn_field.key" => "ecs_container_instance_arn"
+                "ecs_container_instance_arn_field.value" => "%{ecs_container_instance_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_container_instance_arn_field"
+            }
+        }
+    }
+
+    if [ecs_container_instance_id] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_container_instance_id_field.key" => "ecs_container_instance_id"
+                "ecs_container_instance_id_field.value" => "%{ecs_container_instance_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_container_instance_id_field"
+            }
+        }
+    }
+
+    if [ecs_container_id] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_container_id_field.key" => "ecs_container_id"
+                "ecs_container_id_field.value" => "%{ecs_container_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_container_id_field"
+            }
+        }
+    }
+
+    if [ecs_second_container_id] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_second_container_id_field.key" => "ecs_second_container_id"
+                "ecs_second_container_id_field.value" => "%{ecs_second_container_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_second_container_id_field"
+            }
+        }
+    }
+
+    if [ecs_service_name] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_service_name_field.key" => "ecs_service_name"
+                "ecs_service_name_field.value" => "%{ecs_service_name}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_service_name_field"
+            }
+        }
+    }
+
+    if [ecs_task_definition_arn] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_task_definition_arn_field.key" => "ecs_task_definition_arn"
+                "ecs_task_definition_arn_field.value" => "%{ecs_task_definition_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_task_definition_arn_field"
+            }
+        }
+    }
+
+    if [ecs_task_arn] not in ["", "-"] {
+        mutate {
+            replace => {
+                "ecs_task_arn_field.key" => "ecs_task_arn"
+                "ecs_task_arn_field.value" => "%{ecs_task_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_task_arn_field"
+            }
+        }
+    }
+
+    if [about] != "" {
+        mutate {
+            merge => {
+                "event.idm.read_only_udm.about" => "about"
+            }
+        }
+    }
+
+    mutate {
+        replace => {
+            "event.idm.read_only_udm.metadata.product_name" => "AWS VPC Flow"
+            "event.idm.read_only_udm.metadata.vendor_name" => "AMAZON"
+        }
+    }
+
+    mutate {
+        merge => {
+            "@output" => "event"
+        }
+    }
+}
