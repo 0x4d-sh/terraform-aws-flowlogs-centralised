@@ -1,0 +1,612 @@
+# Product: AWS VPC Flow
+# Category: AWS Specific
+# Supported Format: RAW
+# Reference: N/A
+# Last Updated: 2024-07-15
+# Copyright 2024 Chronicle LLC
+
+filter {
+    mutate {
+        replace => {
+        "version" => ""
+        "account_id" => ""
+        "interface_id" => ""
+        "srcaddr" => ""
+        "dstaddr" => ""
+        "srcport" => ""
+        "dstport" => ""
+        "protocol" => ""
+        "packets" => ""
+        "bytes" => ""
+        "start" => ""
+        "end" => ""
+        "action" => ""
+        "log_status" => ""
+        "vpc_id" => ""
+        "subnet_id" => ""
+        "instance_id" => ""
+        "tcp_flags" => ""
+        "type" => ""
+        "pkt_srcaddr" => ""
+        "pkt_dstaddr" => ""
+        "region" => ""
+        "az_id" => ""
+        "sublocation_type" => ""
+        "sublocation_id" => ""
+        "pkt_src_aws_service" => ""
+        "pkt_dst_aws_service" => ""
+        "flow_direction" => ""
+        "traffic_path" => ""
+        "ecs_cluster_arn" => ""
+        "ecs_cluster_name" => ""
+        "ecs_container_instance_arn" => ""
+        "ecs_container_instance_id" => ""
+        "ecs_container_id" => ""
+        "ecs_second_container_id" => ""
+        "ecs_service_name" => ""
+        "ecs_task_definition_arn" => ""
+        "ecs_task_arn" => ""
+        "ecs_task_id" => ""
+        "intermediary" => ""
+        "security_result" => ""
+        "security_result_action" => ""
+        }
+    }
+
+    # Pull fields
+    json {
+      source => "message"
+      array_function => "split_columns"
+      on_error => "not_json"
+    }
+
+    # Handle malformed JSON
+    if [not_json] {
+      drop {
+        tag => "TAG_MALFORMED_ENCODING"
+      }
+    }
+
+    mutate {
+        convert => {
+            "Start" => "string"
+        }
+    }
+
+    mutate {
+        convert => {
+            "End" => "string"
+        }
+    }
+    
+    date {
+        match => ["Start", "UNIX" ]
+    }
+
+    if [end] != "" {
+        date {
+        match => ["end", "UNIX"]
+        target => "event.idm.read_only_udm.metadata.ingested_timestamp"
+        }
+    }
+  
+    if [Version] not in ["", "-"] {
+      mutate {
+        convert => {
+          "Version" => "string"
+        }
+      }
+      mutate {
+        replace => {
+          "event.idm.read_only_udm.metadata.product_version" => "%{Version}"
+        }
+      }
+    }
+
+    if [Account_id] != "" {
+      mutate {
+        replace => {
+          "event.idm.read_only_udm.metadata.product_log_id" => "%{Account_id}"
+        }
+      }
+    }
+
+    if [Interface_id] != "" {
+      mutate {
+        replace => {
+          "interfaceId_field.key" => "interface_id"
+          "interfaceId_field.value" => "%{Interface_id}"
+        }
+      }
+      mutate {
+        merge => {
+          "about.resource.attribute.labels" => "interfaceId_field"
+        }
+      }
+    }
+
+    if [Srcaddr] not in ["", "-"] {
+      mutate {
+        merge => {
+          "event.idm.read_only_udm.principal.ip" => "Srcaddr"
+        }
+      }
+      mutate {
+        convert => {
+          "Srcport" => "integer"
+        }
+      }
+      mutate {
+        rename => {
+          "Srcport" =>
+          "event.idm.read_only_udm.principal.port"
+        }
+      }
+    }
+
+    if [Dstaddr] not in ["", "-"] {
+      mutate {
+        merge => {
+          "event.idm.read_only_udm.target.ip" => "Dstaddr"
+        }
+        replace => {
+          "event.idm.read_only_udm.metadata.event_type" => "NETWORK_CONNECTION"
+        }
+      }
+      mutate {
+        convert => {
+          "Dstport" => "integer"
+        }
+      }
+      mutate {
+        rename => {
+          "Dstport" =>
+          "event.idm.read_only_udm.target.port"
+        }
+      }
+    }
+    else {
+      mutate {
+        replace => {
+          "event.idm.read_only_udm.metadata.event_type" => "GENERIC_EVENT"
+        }
+      }
+    }
+ 
+    # if [Protocol] == 6 {
+    #     mutate {
+    #         replace => {
+    #             "event.idm.read_only_udm.network.ip_protocol" => "TCP"
+    #         }
+    #     }
+    # }
+    # else if [Protocol] == 17 {
+    #     mutate {
+    #         replace => {
+    #             "event.idm.read_only_udm.network.ip_protocol" => "UDP"
+    #         }
+    #     }
+    # }
+    # else if [Protocol] not in ["", "-"] {
+    #     mutate {
+    #         replace => {
+    #             "event.idm.read_only_udm.network.ip_protocol" => "UNKNOWN_IP_PROTOCOL"
+    #         }
+    #     }
+    # }
+
+    # if [Packets] not in ["", "-"] {
+    #   mutate {
+    #     convert => {
+    #       "Packets" => "integer"
+    #     }
+    #   }
+    #   mutate {
+    #     rename => {
+    #       "Packets" => "event.idm.read_only_udm.network.received_packets"
+    #     }
+    #   }
+    # }
+
+    # if [Bytes] not in ["", "-"] {
+    #   mutate {
+    #     convert => {
+    #       "Bytes" => "uinteger"
+    #     }
+    #   }
+    #   mutate {
+    #     rename => {
+    #       "Bytes" => "event.idm.read_only_udm.network.received_bytes"
+    #     }
+    #   }
+    # }
+
+    if [Start] != "" {
+        mutate {
+            replace => {
+                "start_time_field.key" => "start"
+                "start_time_field.value" => "%{Start}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "start_time_field"
+            }
+        }
+    }
+
+    if [End] != "" {
+        mutate {
+            replace => {
+                "end_time_field.key" => "end"
+                "end_time_field.value" => "%{End}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "end_time_field"
+            }
+        }
+    }
+
+    if [Action] != "" {
+        if [Action] == "ACCEPT" {
+            mutate {
+                replace => {
+                "security_result_action" => "ALLOW"
+                }
+            }
+        }
+        else if [Action] == "REJECT" {
+            mutate {
+                replace => {
+                "security_result_action" => "BLOCK"
+                }
+            }
+        }
+    }
+
+    if [security_result_action] != "" {
+        mutate {
+            replace => {
+                "security_result.action_details" => "%{Action}"
+            }
+            merge => {
+                "security_result.action" => "security_result_action"
+            }
+        }
+    }
+
+    if [security_result] != "" {
+        mutate {
+            merge => {
+                "event.idm.read_only_udm.security_result" => "security_result"
+            }
+        }
+    }
+
+    if [Vpc_id] != "" {
+        mutate {
+            rename => {"Vpc_id" => "event.idm.read_only_udm.principal.cloud.vpc.id"}
+        }
+    }
+
+    if [Subnet_id] != "" {
+        mutate {
+            replace => {
+                "subnet_id_field.key" => "subnet_id"
+                "subnet_id_field.value" => "%{Subnet_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "subnet_id_field"
+            }
+        }
+    }
+
+    if [Instance_id] != "" {
+        mutate {
+            rename => {"Instance_id" => "event.idm.read_only_udm.principal.cloud.project.id"}
+        }
+    }
+
+    # if [Tcp_flags] != "" {
+    #     mutate {
+    #         replace => {
+    #             "tcp_flags_field.key" => "tcp_flags"
+    #             "tcp_flags_field.value" => "%{Tcp_flags}"
+    #         }
+    #     }
+    #     mutate {
+    #         merge => {
+    #             "about.resource.attribute.labels" => "tcp_flags_field"
+    #         }
+    #     }
+    # }
+
+    if [Type] != "" {
+        mutate {
+            replace => {
+                "type_field.key" => "type"
+                "type_field.value" => "%{Type}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "type_field"
+            }
+        }
+    }
+
+    if [Pkt_srcaddr] != "" {
+        mutate {
+            merge => {
+                "intermediary.ip" => "Pkt_srcaddr"
+            }
+        }
+    }
+
+    if [Pkt_dstaddr] != "" {
+        mutate {
+            merge => {
+                "intermediary.ip" => "Pkt_dstaddr"
+            }
+        }
+    }
+
+    # if [intermediary] != "" {
+    #     mutate {
+    #         merge => {
+    #             "event.idm.read_only_udm.intermediary" => "intermediary"
+    #         }
+    #     }
+    # }
+
+    if [Region] != "" {
+        mutate {
+            rename => {"Region" => "event.idm.read_only_udm.principal.location.country_or_region"}
+        }
+    }
+
+    if [Az_id] != "" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.principal.cloud.availability_zone" => "%{Az_id}"
+            }
+        }
+    }
+
+    if [Sublocation_type] != "" {
+        mutate {
+            replace => {
+                "sublocation_type_field.key" => "sublocation_type"
+                "sublocation_type_field.value" => "%{Sublocation_type}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "sublocation_type_field"
+            }
+        }
+    }
+
+    if [Sublocation_id] != "" {
+        mutate {
+            replace => {
+                "sublocation_id_field.key" => "sublocation_id"
+                "sublocation_id_field.value" => "%{Sublocation_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "sublocation_id_field"
+            }
+        }
+    }
+
+    if [Pkt_src_aws_service] != "" {
+        mutate {
+            replace => {
+                "pkt_src_aws_service_field.key" => "pkt_src_aws_service"
+                "pkt_src_aws_service_field.value" => "%{Pkt_src_aws_service}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "pkt_src_aws_service_field"
+            }
+        }
+    }
+
+    if [Pkt_dst_aws_service] != "" {
+        mutate {
+            replace => {
+                "pkt_dst_aws_service_field.key" => "pkt_dst_aws_service"
+                "pkt_dst_aws_service_field.value" => "%{Pkt_dst_aws_service}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "pkt_dst_aws_service_field"
+            }
+        }
+    }
+
+    if [Flow_direction] == "ingress" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.network.direction" => "INBOUND"
+            }
+        }
+    }
+    else if [Flow_direction] == "egress" {
+        mutate {
+            replace => {
+                "event.idm.read_only_udm.network.direction" => "OUTBOUND"
+            }
+        }
+    }
+
+    # if [Traffic_path] not in ["", "-"] {
+    #     mutate {
+    #         replace => {
+    #             "traffic_path_field.key" => "traffic_path"
+    #             "traffic_path_field.value" => "%{Traffic_path}"
+    #         }
+    #     }
+    #     mutate {
+    #         merge => {
+    #             "about.resource.attribute.labels" => "traffic_path_field"
+    #         }
+    #     }
+    # }
+
+    if [Ecs_cluster_arn] != "" {
+        mutate {
+            replace => {
+                "ecs_cluster_arn_field.key" => "ecs_cluster_arn"
+                "ecs_cluster_arn_field.value" => "%{Ecs_cluster_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_cluster_arn_field"
+            }
+        }
+    }
+
+    if [Ecs_cluster_name] != "" {
+        mutate {
+            replace => {
+                "ecs_cluster_name_field.key" => "ecs_cluster_name"
+                "ecs_cluster_name_field.value" => "%{Ecs_cluster_name}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_cluster_name_field"
+            }
+        }
+    }
+
+    if [Ecs_container_instance_arn] != "" {
+        mutate {
+            replace => {
+                "ecs_container_instance_arn_field.key" => "ecs_container_instance_arn"
+                "ecs_container_instance_arn_field.value" => "%{Ecs_container_instance_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_container_instance_arn_field"
+            }
+        }
+    }
+
+    if [Ecs_container_instance_id] != "" {
+        mutate {
+            replace => {
+                "ecs_container_instance_id_field.key" => "ecs_container_instance_id"
+                "ecs_container_instance_id_field.value" => "%{Ecs_container_instance_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_container_instance_id_field"
+            }
+        }
+    }
+
+    if [Ecs_container_id] != "" {
+        mutate {
+            replace => {
+                "ecs_container_id_field.key" => "ecs_container_id"
+                "ecs_container_id_field.value" => "%{Ecs_container_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_container_id_field"
+            }
+        }
+    }
+
+    if [Ecs_second_container_id] != "" {
+        mutate {
+            replace => {
+                "ecs_second_container_id_field.key" => "ecs_second_container_id"
+                "ecs_second_container_id_field.value" => "%{Ecs_second_container_id}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_second_container_id_field"
+            }
+        }
+    }
+
+    if [Ecs_service_name] != "" {
+        mutate {
+            replace => {
+                "ecs_service_name_field.key" => "ecs_service_name"
+                "ecs_service_name_field.value" => "%{Ecs_service_name}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_service_name_field"
+            }
+        }
+    }
+
+    if [Ecs_task_definition_arn] != "" {
+        mutate {
+            replace => {
+                "ecs_task_definition_arn_field.key" => "ecs_task_definition_arn"
+                "ecs_task_definition_arn_field.value" => "%{Ecs_task_definition_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_task_definition_arn_field"
+            }
+        }
+    }
+
+    if [Ecs_task_arn] != "" {
+        mutate {
+            replace => {
+                "ecs_task_arn_field.key" => "ecs_task_arn"
+                "ecs_task_arn_field.value" => "%{Ecs_task_arn}"
+            }
+        }
+        mutate {
+            merge => {
+                "about.resource.attribute.labels" => "ecs_task_arn_field"
+            }
+        }
+    }
+
+    if [about] != "" {
+        mutate {
+            merge => {
+                "event.idm.read_only_udm.about" => "about"
+            }
+        }
+    }
+
+    mutate {
+      replace => {
+        "event.idm.read_only_udm.metadata.product_name" => "AWS VPC Flow"
+        "event.idm.read_only_udm.metadata.vendor_name" => "AMAZON"
+        # "event.idm.read_only_udm.metadata.event_type" => "GENERIC_EVENT"
+      }
+    }
+
+    mutate {
+      merge => {
+        "@output" => "event"
+      }
+    }
+}
